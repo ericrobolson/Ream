@@ -7,6 +7,10 @@ pub fn repl(script: String) {
 
 fn read(script: &String) {
     let tokens = lex(script);
+
+    for token in tokens {
+        println!("read: {}", token);
+    }
 }
 
 fn evaluate() {}
