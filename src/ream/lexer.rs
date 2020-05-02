@@ -1,6 +1,6 @@
 use std::fmt;
 
-pub type Number = i64;
+use super::Number;
 
 // Based on: https://www.tutorialspoint.com/lisp/lisp_quick_guide.htm
 
@@ -71,7 +71,9 @@ pub fn lex(script: &String) -> Vec<TokenTypes> {
         .to_lowercase()
         .split_whitespace()
         .map(|s| s.to_string())
-        .map(|token| {
+        .map(|mut token| {
+            token.retain(|c| !c.is_whitespace());
+
             let parenthesis = try_parse_parenthesis(&token);
             if parenthesis.is_some() {
                 return parenthesis;
@@ -111,7 +113,6 @@ fn try_parse_op(token: &str) -> Option<TokenTypes> {
     };
 }
 
-//TODO: test
 fn try_parse_number(token: &str) -> Option<TokenTypes> {
     let int = token.parse::<Number>();
 
@@ -125,6 +126,42 @@ fn try_parse_number(token: &str) -> Option<TokenTypes> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn lexer_try_parse_number_n1d001_op_returns_some_n1d001() {
+        let script = "-1.001";
+        let expected = Some(TokenTypes::Number(script.parse::<Number>().unwrap()));
+        let actual = try_parse_number(script);
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn lexer_try_parse_number_1d001_op_returns_some_1d001() {
+        let script = "1.001";
+        let expected = Some(TokenTypes::Number(script.parse::<Number>().unwrap()));
+        let actual = try_parse_number(script);
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn lexer_try_parse_number_1_op_returns_some_1() {
+        let script = "1";
+        let expected = Some(TokenTypes::Number(Number::from_num(1)));
+        let actual = try_parse_number(script);
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn lexer_try_parse_number_not_an_op_returns_none() {
+        let script = "supra test yo";
+        let expected = None;
+        let actual = try_parse_number(script);
+
+        assert_eq!(expected, actual);
+    }
 
     #[test]
     fn lexer_try_parse_op_not_an_op_returns_none() {
@@ -206,8 +243,8 @@ mod tests {
         let expected: Vec<TokenTypes> = vec![
             TokenTypes::Parenthesis(Parenthesis::LParen),
             TokenTypes::Operation(Operations::Plus),
-            TokenTypes::Number(1),
-            TokenTypes::Number(2),
+            TokenTypes::Number(Number::from_num(1)),
+            TokenTypes::Number(Number::from_num(2)),
             TokenTypes::Parenthesis(Parenthesis::RParen),
         ];
 
